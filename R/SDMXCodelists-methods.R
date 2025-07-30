@@ -58,55 +58,43 @@ codelists.SDMXCodelists <- function(xmlObj, namespaces){
 as.data.frame.SDMXCodelists <- function(x, ...,
                                        codelistId = NULL,
                                        ignore.empty.slots = TRUE){
-  xmlObj <- x@xmlObj;
-  
-  codes <- NULL
-  if(length(x@codelists) == 0) return(codes)
   codelist <- NULL
-  if(length(x@codelists) > 1){
+  
+  if(length(x@codelists) == 0){
+    warning("No codelist found in SDMXCodelists object.")
+    return(NULL)
+  } else if (length(x@codelists) == 1){
+    codelist <- x@codelists[[1]]
+  } else if (length(x@codelists) > 1){
     if(is.null(codelistId)){
       warning("Using first codelist referenced in SDMXCodelists object: \n
                Specify 'codelistId' argument for a specific codelist")
       codelist <- x@codelists[[1]]
     }else{
-      selectedCodelist <- NULL
-      for(i in 1:length(x@codelists)){
-        cl <- x@codelists[[i]]
+      #TODO: codelist is only selected by id, codelist agency/version not looked at.
+      #      This can lead to multiple matching codelists, putting a warning if multiple 
+      #      codelists are found.
+      counfcl_count = 0
+      for(cl in x@codelists){
+        
         if(cl@id == codelistId){
-          selectedCodelist <- cl
+          codelist <- cl
+          counfcl_count += 1
         }
       }
-      codelist <- selectedCodelist
+      if(counfcl_count > 1){
+        warning("Multiple codelists with id '", codelistId, "' found in SDMXCodelists object. \n
+                 Using last codelist referenced in SDMXCodelists object.")
+      } elseif(counfcl_count == 0){
+        warning("No codelist with id '", codelistId, "' found in SDMXCodelists object.")
+        return(NULL)
+      }
     }
-  }else{
-    codelist <- x@codelists[[1]]
+  } else {
+    stop("Unexpected number of codelists in SDMXCodelists object")
   }
-  codesList <- codelist@Code
-  
-  if(!is.null(codesList)){
-    codes <- do.call("rbind.fill",
-                        lapply(codesList, function(code){
-                          fields <- sapply(slotNames(code), function(x){
-                            obj <- slot(code,x)
-                            if(length(obj)>0) return(obj)
-                          })
-                          fields <- fields[!sapply(fields, is.null)]
-                          fnames <- names(fields)
-                          fields <- as.data.frame(fields, stringsAsFactors = FALSE)
-                          if(length(fnames)==length(colnames(fields))){
-                            colnames(fields)[4:length(fnames)] <- paste(fnames[4:length(fnames)],
-                             sapply(strsplit(colnames(fields)[4:length(fnames)], ".", fixed=T), function(x){x[[1]]}), sep=".")
-                          }
-                          return(fields)
-                        })
-    )
-  }
-  
-  if(ignore.empty.slots){
-    codes <- codes[,colSums(is.na(codes))<nrow(codes)]
-  }
-  
-  return(encodeSDMXOutput(codes))
+ 
+  return(as.data.frame(codeList, ignore.empty.slots =ignore.empty.slots))
 }
 
 setAs("SDMXCodelists", "data.frame",
