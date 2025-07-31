@@ -57,36 +57,39 @@ codelists.SDMXCodelists <- function(xmlObj, namespaces){
 #'@export
 as.data.frame.SDMXCodelists <- function(x, ...,
                                        codelistId = NULL,
+                                       codelistAgencyID = NULL,
+                                       codelistVersion = NULL,
                                        ignore.empty.slots = TRUE){
   codelist <- NULL
   
   if(length(x@codelists) == 0){
-    warning("No codelist found in SDMXCodelists object.")
+    warning("SDMXCodelists object contains no codelists.")
     return(NULL)
   } else if (length(x@codelists) == 1){
+    #Note: codelistID, codelistAgencyID and codelistVersion are ignored when there is only one codelist in Codelists object
     codelist <- x@codelists[[1]]
   } else if (length(x@codelists) > 1){
-    if(is.null(codelistId)){
-      warning("Using first codelist referenced in SDMXCodelists object: \n
-               Specify 'codelistId' argument for a specific codelist")
+    if(is.null(codelistId) && is.null(codelistAgencyID) && is.null(codelistVersion)){
+      warning("Using first codelist in SDMXCodelists object: \n
+               Specify 'codelistId', 'codelistAgencyID' or 'codelistVersion' arguments for a specific codelist")
       codelist <- x@codelists[[1]]
     }else{
-      #TODO: codelist is only selected by id, codelist agency/version not looked at.
-      #      This can lead to multiple matching codelists, putting a warning if multiple 
-      #      codelists are found.
       counfcl_count = 0
       for(cl in x@codelists){
-        
-        if(cl@id == codelistId){
+        if(
+            (cl@id == codelistId) &&
+            (is.null(codelistAgencyID) || cl@agencyID == codelistAgencyID) &&
+            (is.null(codelistVersion) || cl@version == codelistVersion)
+          ){
           codelist <- cl
           counfcl_count += 1
         }
       }
       if(counfcl_count > 1){
-        warning("Multiple codelists with id '", codelistId, "' found in SDMXCodelists object. \n
-                 Using last codelist referenced in SDMXCodelists object.")
+        warning("Multiple matching codelists found in SDMXCodelists object. \n
+                 Using last matching codelist in SDMXCodelists object.")
       } elseif(counfcl_count == 0){
-        warning("No codelist with id '", codelistId, "' found in SDMXCodelists object.")
+        warning("No matching codelists found in SDMXCodelists object.")
         return(NULL)
       }
     }
