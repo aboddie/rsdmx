@@ -65,21 +65,20 @@ as.data.frame.SDMXCodelists <- function(x, ...,
   if(length(x@codelists) == 0){
     warning("SDMXCodelists object contains no codelists.")
     return(NULL)
-  } else if (length(x@codelists) == 1){
-    #Note: codelistID, codelistAgencyID and codelistVersion are ignored when there is only one codelist in Codelists object
-    codelist <- x@codelists[[1]]
-  } else if (length(x@codelists) > 1){
+  } else if (length(x@codelists) >= 1){
     if(is.null(codelistId) && is.null(codelistAgencyID) && is.null(codelistVersion)){
-      warning("Using first codelist in SDMXCodelists object: \n
-               Specify 'codelistId', 'codelistAgencyID' or 'codelistVersion' arguments for a specific codelist")
+      if (length(x@codelists) > 1){
+        warning("Using first codelist in SDMXCodelists object: \n
+                Specify 'codelistId', 'codelistAgencyID' or 'codelistVersion' arguments for a specific codelist")
+      }
       codelist <- x@codelists[[1]]
     }else{
       counfcl_count = 0
       for(cl in x@codelists){
         if(
-            (cl@id == codelistId) &&
+            (is.null(codelistId)       || cl@id == codelistId)             &&
             (is.null(codelistAgencyID) || cl@agencyID == codelistAgencyID) &&
-            (is.null(codelistVersion) || cl@version == codelistVersion)
+            (is.null(codelistVersion)  || cl@version == codelistVersion)
           ){
           codelist <- cl
           counfcl_count += 1
@@ -94,10 +93,10 @@ as.data.frame.SDMXCodelists <- function(x, ...,
       }
     }
   } else {
-    stop("Unexpected number of codelists in SDMXCodelists object")
+    stop("Unexpected number of codelists in SDMXCodelists object.")
   }
  
-  return(as.data.frame(codeList, ignore.empty.slots =ignore.empty.slots))
+  return(as.data.frame(codeList, ignore.empty.slots=ignore.empty.slots))
 }
 
 setAs("SDMXCodelists", "data.frame",
