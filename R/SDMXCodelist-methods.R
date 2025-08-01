@@ -156,13 +156,12 @@ SDMXCodelist <- function(xmlObj, namespaces){
 as.data.frame.SDMXCodelist <- function(x, ...,
                                         ignore.empty.slots = TRUE){
   codes <- NULL
-  if(length(x@code) == 0) return(codes)
-  codelist <- NULL
-  codesList <- x@Code
-  
-  if(!is.null(codesList)){
+  if(length(x@Code) == 0){
+    warning("SDMXCodelist object contains no codes.")
+    return(NULL)
+  } else {
     codes <- do.call("rbind.fill",
-                     lapply(codesList, function(code){
+                     lapply(x@Code, function(code){
                        fields <- sapply(slotNames(code), function(x){
                          obj <- slot(code,x)
                          if(length(obj)>0) return(obj)

@@ -81,13 +81,13 @@ as.data.frame.SDMXCodelists <- function(x, ...,
             (is.null(codelistVersion)  || cl@version == codelistVersion)
           ){
           codelist <- cl
-          counfcl_count += 1
+          counfcl_count <- counfcl_count + 1
         }
       }
       if(counfcl_count > 1){
         warning("Multiple matching codelists found in SDMXCodelists object. \n
-                 Using last matching codelist in SDMXCodelists object.")
-      } elseif(counfcl_count == 0){
+                 Using last matching codelist.")
+      } else if (counfcl_count == 0){
         warning("No matching codelists found in SDMXCodelists object.")
         return(NULL)
       }
@@ -96,7 +96,7 @@ as.data.frame.SDMXCodelists <- function(x, ...,
     stop("Unexpected number of codelists in SDMXCodelists object.")
   }
  
-  return(as.data.frame(codeList, ignore.empty.slots=ignore.empty.slots))
+  return(as.data.frame(codelist, ignore.empty.slots=ignore.empty.slots))
 }
 
 setAs("SDMXCodelists", "data.frame",
